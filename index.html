@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevTask & Chai Weather Hub</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --accent: #ff7b02;
+            --text-main: #f0f6fc;
+            --text-sub: #8b949e;
+            --border: #30363d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-card {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Weather & Chai Section */
+        .weather-chai-card {
+            background: linear-gradient(135deg, #1f293d 0%, #111827 100%);
+            border: 1px solid #374151;
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .weather-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .temp {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #38bdf8;
+        }
+
+        .chai-recommendation {
+            font-size: 0.9rem;
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border-left: 3px solid #fbbf24;
+            margin-bottom: 14px;
+        }
+
+        .timer-display {
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            color: var(--accent);
+            letter-spacing: 2px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: var(--accent);
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Task List Section */
+        .task-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: #fff;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent);
+        }
+
+        .btn-add {
+            width: auto;
+            padding: 0 16px;
+            background: #238636;
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #21262d;
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .task-item.completed span {
+            text-decoration: line-through;
+            color: var(--text-sub);
+        }
+
+        .delete-btn {
+            background: transparent;
+            border: none;
+            color: #f85149;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        /* Custom Notification Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #238636;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <div class="header">
+        <h1><span>⚡</span> DevTask & Weather ☕</h1>
+    </div>
+
+    <!-- Weather & Chai Break Hub -->
+    <div class="weather-chai-card">
+        <div class="weather-info">
+            <div>
+                <div style="font-size: 0.85rem; color: var(--text-sub);">Current Location</div>
+                <div style="font-weight: 600;" id="city">Saharanpur, IN</div>
+            </div>
+            <div class="temp" id="temp">28°C ⛅</div>
+        </div>
+
+        <div class="chai-recommendation" id="chaiQuote">
+            ☕ "Mausam sahi hai! Ek Adrak Wali Chai toh banti hai code run karne se pehle!"
+        </div>
+
+        <div class="timer-display" id="timer">15:00</div>
+
+        <button class="btn" onclick="startChaiBreak()">Start 15-Min Chai Break ☕</button>
+    </div>
+
+    <!-- Project Task Tracker -->
+    <div style="margin-bottom: 12px; font-weight: 600; font-size: 0.95rem;">
+        📋 Project Goals (2026)
+    </div>
+
+    <div class="task-input-group">
+        <input type="text" id="taskInput" placeholder="Add new project or task...">
+        <button class="btn btn-add" onclick="addTask()">Add</button>
+    </div>
+
+    <ul class="task-list" id="taskList">
+        <li class="task-item">
+            <span>Project 16: DevTask & Weather App</span>
+            <button class="delete-btn" onclick="this.parentElement.remove()">✕</button>
+        </li>
+        <li class="task-item">
+            <span>Project 17: Portfolio 3D Showcase</span>
+            <button class="delete-btn" onclick="this.parentElement.remove()">✕</button>
+        </li>
+    </ul>
+</div>
+
+<div class="toast" id="toast">☕ Chai Break Activated! Coding Boost +100% 🚀</div>
+
+<script>
+    let timerInterval;
+
+    function startChaiBreak() {
+        showToast("☕ Chai Break Started! Take a breath.");
+        let timeLeft = 15 * 60; // 15 minutes
+        
+        clearInterval(timerInterval);
+        
+        timerInterval = setInterval(() => {
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            
+            document.getElementById('timer').innerText = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                document.getElementById('timer').innerText = "15:00";
+                showToast("⏰ Break Over! Back to Code!");
+            }
+            timeLeft--;
+        }, 1000);
+    }
+
+    function addTask() {
+        let input = document.getElementById('taskInput');
+        let text = input.value.trim();
+        if(!text) return;
+
+        let li = document.createElement('li');
+        li.className = 'task-item';
+        li.innerHTML = `<span>${text}</span> <button class="delete-btn" onclick="this.parentElement.remove()">✕</button>`;
+        
+        document.getElementById('taskList').appendChild(li);
+        input.value = '';
+    }
+
+    function showToast(message) {
+        let toast = document.getElementById('toast');
+        toast.innerText = message;
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+</script>
+
+</body>
+</html>
