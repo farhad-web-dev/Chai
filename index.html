@@ -39,11 +39,6 @@
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 24px;
-        }
-
         .header h1 {
             font-size: 1.5rem;
             color: var(--text-main);
@@ -51,17 +46,15 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            margin-bottom: 24px;
         }
 
-        /* Weather & Chai Section */
         .weather-chai-card {
             background: linear-gradient(135deg, #1f293d 0%, #111827 100%);
             border: 1px solid #374151;
             border-radius: 16px;
             padding: 18px;
             margin-bottom: 24px;
-            position: relative;
-            overflow: hidden;
         }
 
         .weather-info {
@@ -114,7 +107,6 @@
             transform: scale(0.98);
         }
 
-        /* Task List Section */
         .task-input-group {
             display: flex;
             gap: 8px;
@@ -156,6 +148,11 @@
             border: 1px solid var(--border);
         }
 
+        .task-item span {
+            cursor: pointer;
+            flex: 1;
+        }
+
         .task-item.completed span {
             text-decoration: line-through;
             color: var(--text-sub);
@@ -167,9 +164,9 @@
             color: #f85149;
             cursor: pointer;
             font-size: 1rem;
+            padding-left: 10px;
         }
 
-        /* Custom Notification Toast */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -203,12 +200,12 @@
         <div class="weather-info">
             <div>
                 <div style="font-size: 0.85rem; color: var(--text-sub);">Current Location</div>
-                <div style="font-weight: 600;" id="city">Saharanpur, IN</div>
+                <div style="font-weight: 600;">Saharanpur, IN</div>
             </div>
-            <div class="temp" id="temp">28°C ⛅</div>
+            <div class="temp">28°C ⛅</div>
         </div>
 
-        <div class="chai-recommendation" id="chaiQuote">
+        <div class="chai-recommendation">
             ☕ "Mausam sahi hai! Ek Adrak Wali Chai toh banti hai code run karne se pehle!"
         </div>
 
@@ -219,7 +216,7 @@
 
     <!-- Project Task Tracker -->
     <div style="margin-bottom: 12px; font-weight: 600; font-size: 0.95rem;">
-        📋 Project Goals (2026)
+        📋 Project Goals (2026) <span style="font-size:11px; color:#8b949e;">(Auto-Saved)</span>
     </div>
 
     <div class="task-input-group">
@@ -227,16 +224,7 @@
         <button class="btn btn-add" onclick="addTask()">Add</button>
     </div>
 
-    <ul class="task-list" id="taskList">
-        <li class="task-item">
-            <span>Project 16: DevTask & Weather App</span>
-            <button class="delete-btn" onclick="this.parentElement.remove()">✕</button>
-        </li>
-        <li class="task-item">
-            <span>Project 17: Portfolio 3D Showcase</span>
-            <button class="delete-btn" onclick="this.parentElement.remove()">✕</button>
-        </li>
-    </ul>
+    <ul class="task-list" id="taskList"></ul>
 </div>
 
 <div class="toast" id="toast">☕ Chai Break Activated! Coding Boost +100% 🚀</div>
@@ -244,9 +232,12 @@
 <script>
     let timerInterval;
 
+    // Load Tasks from LocalStorage on Startup
+    document.addEventListener("DOMContentLoaded", loadTasks);
+
     function startChaiBreak() {
-        showToast("☕ Chai Break Started! Take a breath.");
-        let timeLeft = 15 * 60; // 15 minutes
+        showToast("☕ Chai Break Started! Relax for 15 mins.");
+        let timeLeft = 15 * 60;
         
         clearInterval(timerInterval);
         
@@ -271,12 +262,60 @@
         let text = input.value.trim();
         if(!text) return;
 
-        let li = document.createElement('li');
-        li.className = 'task-item';
-        li.innerHTML = `<span>${text}</span> <button class="delete-btn" onclick="this.parentElement.remove()">✕</button>`;
-        
-        document.getElementById('taskList').appendChild(li);
+        let tasks = getSavedTasks();
+        tasks.push({ text: text, completed: false });
+        localStorage.setItem("devTasks", JSON.stringify(tasks));
+
         input.value = '';
+        renderTasks();
+        showToast("Task Saved Permanently! ✅");
+    }
+
+    function toggleTask(index) {
+        let tasks = getSavedTasks();
+        tasks[index].completed = !tasks[index].completed;
+        localStorage.setItem("devTasks", JSON.stringify(tasks));
+        renderTasks();
+    }
+
+    function deleteTask(index) {
+        let tasks = getSavedTasks();
+        tasks.splice(index, 1);
+        localStorage.setItem("devTasks", JSON.stringify(tasks));
+        renderTasks();
+    }
+
+    function getSavedTasks() {
+        let saved = localStorage.getItem("devTasks");
+        if(saved) {
+            return JSON.parse(saved);
+        } else {
+            // Default Initial Tasks
+            return [
+                { text: "Project 16: DevTask & Weather App", completed: true },
+                { text: "Project 17: Portfolio 3D Showcase", completed: false }
+            ];
+        }
+    }
+
+    function loadTasks() {
+        renderTasks();
+    }
+
+    function renderTasks() {
+        let tasks = getSavedTasks();
+        let list = document.getElementById('taskList');
+        list.innerHTML = '';
+
+        tasks.forEach((task, index) => {
+            let li = document.createElement('li');
+            li.className = `task-item ${task.completed ? 'completed' : ''}`;
+            li.innerHTML = `
+                <span onclick="toggleTask(${index})">${task.text}</span>
+                <button class="delete-btn" onclick="deleteTask(${index})">✕</button>
+            `;
+            list.appendChild(li);
+        });
     }
 
     function showToast(message) {
